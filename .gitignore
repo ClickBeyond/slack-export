@@ -113,3 +113,4 @@ files.slack.com
 
 # VSCode settings file
 .vscode/
+*.zip
