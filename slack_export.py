@@ -158,6 +158,7 @@ def promptForPublicChannels(channels):
 
 # fetch and write history for all public channels
 def fetchPublicChannels(channels):
+    print("Fetching {0} public channels" .format(len(channels)))
     if dryRun:
         print("Public Channels selected for export:")
         for channel in channels:
@@ -211,6 +212,7 @@ def promptForDirectMessages(dms):
 # fetch and write history for all direct message conversations
 # also known as IMs in the slack API.
 def fetchDirectMessages(dms):
+    print("Fetching {0} 1:1 DMs" .format(len(dms)))
     if dryRun:
         print("1:1 DMs selected for export:")
         for dm in dms:
@@ -234,6 +236,7 @@ def promptForGroups(groups):
 # fetch and write history for specific private channel
 # also known as groups in the slack API.
 def fetchGroups(groups):
+    print("Fetching Private Channels and Group DMs" .format(len(groups)))
     if dryRun:
         print("Private Channels and Group DMs selected for export:")
         for group in groups:
@@ -298,6 +301,8 @@ def bootstrapKeyValues():
 # Returns the conversations to download based on the command-line arguments
 def selectConversations(allConversations, commandLineArg, filter, prompt):
     global args
+    if args.excludeArchived:
+        allConversations = [ conv for conv in allConversations if not conv["is_archived"] ]
     if isinstance(commandLineArg, list) and len(commandLineArg) > 0:
         return filter(allConversations, commandLineArg)
     elif commandLineArg != None or not anyConversationsSpecified():
@@ -431,6 +436,18 @@ if __name__ == "__main__":
         help="Downloads files from files.slack.com for local access, stored in 'files.slack.com' folder. "
             "Link this folder inside slack-export-viewer/slackviewer/static/ to have it work seamless with slack-export-viewer")
 
+    parser.add_argument(
+        '--excludeArchived',
+        action='store_true',
+        default=False,
+        help="Do not export channels that have been archived")
+
+    parser.add_argument(
+        '--excludeNonMember',
+        action='store_true',
+        default=False,
+        help="Only export public channels if the user is a member of the channel")
+
     args = parser.parse_args()
 
     users = []
@@ -462,7 +479,9 @@ if __name__ == "__main__":
         args.publicChannels,
         filterConversationsByName,
         promptForPublicChannels)
-
+    if args.excludeNonMember:
+        selectedChannels  = [ channel for channel in selectedChannels if channel["is_member"] ]
+        
     selectedGroups = selectConversations(
         groups,
         args.groups,
