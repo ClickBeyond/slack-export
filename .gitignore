@@ -106,3 +106,10 @@ venv.bak/
 # slack-export related files
 files.slack.com
 *-slack_export/
+
+# exports
+2020*/
+2019*/
+
+# VSCode settings file
+.vscode/
